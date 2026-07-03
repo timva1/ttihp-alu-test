@@ -16,10 +16,13 @@ make -B              # run RTL simulation (cocotb + Icarus Verilog)
 make clean           # clean sim_build/ and generated waveform/results files
 make -B FST=         # dump real VCD instead of FST (see dumpfile note below)
 make -B GATES=yes    # gate-level simulation (requires gate_level_netlist.v, copied from a hardened build)
+make -B test_<name>  # run with a custom testbench pair: <name>_tb.v + test_<name>.py
 ```
 
-- Simulator is Icarus Verilog (`SIM=icarus`) driven via cocotb; test entry point is `test/test.py`, the Verilog testbench wrapper is `test/tb.v`.
-- `COCOTB_TEST_MODULES = test` in `test/Makefile` controls which Python test module(s) run.
+The `test_<name>` target works by re-invoking make with `CUSTOM_TB=<name>`, which swaps in `test/<name>_tb.v` as the Verilog toplevel (module name `<name>_tb`) and `test/test_<name>.py` as the cocotb test module. All other flags compose normally, e.g. `make -B test_foo GATES=yes FST=`.
+
+- Simulator is Icarus Verilog (`SIM=icarus`) driven via cocotb; default test entry point is `test/test.py`, default Verilog testbench wrapper is `test/tb.v`.
+- `COCOTB_TEST_MODULES` in `test/Makefile` controls which Python test module(s) run; it is set automatically by `test_<name>` targets.
 - Test results land in `test/results.xml` (JUnit format) and waveforms in `test/tb.fst`/`tb.vcd`. View with `gtkwave tb.fst tb.gtkw` or `surfer tb.fst`.
 - Python deps: `pip install -r test/requirements.txt` (cocotb 2.0.1, pytest).
 - `PROJECT_SOURCES` in `test/Makefile` must be kept in sync with `source_files` in `info.yaml` whenever Verilog files are added/renamed.
@@ -48,6 +51,7 @@ There is no separate lint/build step to run locally beyond simulation — synthe
 ## Conventions specific to this repo
 
 - **Every `@cocotb.test()` coroutine must end with an `await` (e.g. `await ClockCycles(dut.clk, 1)`) that runs unconditionally — never let the coroutine return in the same delta cycle as the last `dut.<signal>.value = ...` write, including on an exception path (e.g. a caught `AssertionError`).** Doing so corrupts this Icarus/cocotb build's (`cocotb-2.1.0.dev0+41564633`, bundled with the `oss-cad-suite` darwin-aarch64 toolchain) waveform-dump teardown: the test reports "passed" and the simulation appears to finish cleanly, but `vvp` segfaults moments later while closing the FST/VCD dump (right after the "dumpfile ... opened for output" line). If you add a new test or wrap an assertion in `try/except`, put the trailing `await` after the `try/except`, not only inside the success path.
+- **`cocotb.start_soon` tasks (including `Clock`) are cancelled at the end of the test that created them.** Never guard clock startup with a module-level `_clock_started` flag — the clock must be restarted in every test's setup function (or a fixture that runs per-test), otherwise subsequent tests run without a clock and the simulator terminates with "ran out of events".
 - Top module name must start with `tt_um_` and stay unique (TinyTapeout convention) — currently `tt_um_example`; if renaming, update it in `info.yaml` (`top_module`), `src/project.v` (module name), and `test/tb.v` (instantiation).
 - Bidirectional IO (`uio_out`, `uio_oe`) must always be fully assigned even when unused (currently `uio_out` is tied to 0 in `project.v`).
 - ALU op encoding (`alu_op[3:0]`) is defined in both `src/alu.v` (Verilog case statement) and `test/test.py` (`ALU_OP_*` constants) — keep both in sync if op codes change.

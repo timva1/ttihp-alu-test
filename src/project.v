@@ -27,7 +27,7 @@ module tt_um_example (
 
   assign alu_input_a = {2{ui_in[7:4], ~ui_in[7:4], ui_in[3:0], ~ui_in[3:0]}};
   assign alu_input_b = {2{~ui_in[3:0], ui_in[7:4], ~ui_in[7:4], ui_in[3:0]}};
-  assign alu_oe = 8'b00000000;
+  // assign alu_oe = 8'b00000000;
   assign alu_op = uio_in[3:0];
   assign uo_out = alu_output[7:0];
 

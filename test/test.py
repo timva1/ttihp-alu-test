@@ -59,8 +59,8 @@ def calc_alu_expected_result(ui_in, uio_in):
 async def test_project(dut):
     dut._log.info("Start")
 
-    # Set the clock period to 10 us (100 KHz)
-    clock = Clock(dut.clk, 10, unit="us")
+    # Set the clock period to 1 us (1 MHz)
+    clock = Clock(dut.clk, 1, unit="us")
     cocotb.start_soon(clock.start())
 
     # Reset

@@ -1,4 +1,6 @@
 {
   "verilog.linting.linter": "verilator",
-  "verilog.formatting.verilogHDL.formatter": "verible-verilog-format"
+  "verilog.formatting.verilogHDL.formatter": "verible-verilog-format",
+  "python.defaultInterpreterPath": "~/Documents/TinyTapeout/oss-cad-suite/py3bin/python3.11",
+  "python-envs.defaultEnvManager": "ms-python.python:system"
 }

@@ -6,7 +6,7 @@ SIM ?= icarus
 FST ?= -fst # Use more efficient FST format
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = project.v alu.v
+PROJECT_SOURCES = rf.v alu.v project.v
 
 ifneq ($(GATES),yes)
 
@@ -32,12 +32,22 @@ endif
 # Allow sharing configuration between design and testbench via `include`:
 COMPILE_ARGS 		+= -I$(SRC_DIR)
 
-# Include the testbench sources:
+# Select testbench: `make test_<name>` uses <name>_tb.v and test_<name>.py;
+# plain `make` uses tb.v and test.py (default behaviour).
+ifdef CUSTOM_TB
+VERILOG_SOURCES += $(PWD)/test_modules/$(CUSTOM_TB)_tb.v
+TOPLEVEL = $(CUSTOM_TB)_tb
+COCOTB_TEST_MODULES = test_$(CUSTOM_TB)
+else
 VERILOG_SOURCES += $(PWD)/tb.v
 TOPLEVEL = tb
-
-# List test modules to run, separated by commas and without the .py suffix:
 COCOTB_TEST_MODULES = test
+endif
 
 # include cocotb's make rules to take care of the simulator setup
 include $(shell cocotb-config --makefiles)/Makefile.sim
+
+# Pattern rule: `make test_<name> [options]` re-invokes make with CUSTOM_TB set.
+# Extra variables (GATES, FST, …) are forwarded automatically via MAKEFLAGS.
+test_%:
+	$(MAKE) CUSTOM_TB=$*

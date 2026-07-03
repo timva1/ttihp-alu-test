@@ -1,6 +1,7 @@
 .DS_Store
 .idea
 *.vcd
+*.vcd.hier
 *.fst
 *.fst.hier
 runs
@@ -11,3 +12,5 @@ test/sim_build
 test/__pycache__/
 test/results.xml
 test/gate_level_netlist.v
+test/alu_log.txt
+test/logs/
