@@ -39,6 +39,9 @@ There is no separate lint/build step to run locally beyond simulation — synthe
 - `test/test.py` — cocotb testbench. Mirrors the bit-mangling logic from `project.v` in Python (`calc_alu_input_a`/`calc_alu_input_b`/`calc_alu_expected_result`) to compute expected ALU results from `ui_in`/`uio_in` and compare against `uo_out`. Keep these Python helpers in sync with any change to the operand-construction logic in `project.v`.
 - `info.yaml` — TinyTapeout project metadata consumed by the build/docs/GDS pipelines: `top_module`, `source_files` (must list every Verilog file under `src/`, one per line), pin descriptions for the datasheet, clock frequency, tile count. This is the source of truth the CI actions read — editing Verilog without updating `source_files` here breaks the hardening/docs workflows.
 - `docs/info.md` — project datasheet description ("How it works" / "How to test" sections), currently unfilled placeholder text; rendered into the public docs by the `docs` workflow.
+- `docs/architecture.md` — the whole-design specification/implementation contract for the parametrizable RV32E SoC (module boundaries, interfaces, parameters, register maps, pinout). The higher-level plan every module refines.
+- `docs/microarchitecture/<module>.md` — per-module microarchitectural plan (interfaces, internal structure, timing, key decisions), agreed before RTL and kept in sync with it; written by the `build-module` skill.
+- `docs/verification/<module>.md` — per-module verification plan (scenarios, coverage, cocotb-vs-UVM), agreed before test code and kept in sync with it; written by the `build-module` skill.
 - `src/config.json` — LibreLane hardening configuration (density, clock period, margins, etc.). Marked "do not edit unless you know what you are doing"; only touch when fixing a specific hardening failure (e.g. placement/timing violations), not for general changes.
 
 ## CI workflows (`.github/workflows/`)
@@ -55,3 +58,4 @@ There is no separate lint/build step to run locally beyond simulation — synthe
 - Top module name must start with `tt_um_` and stay unique (TinyTapeout convention) — currently `tt_um_example`; if renaming, update it in `info.yaml` (`top_module`), `src/project.v` (module name), and `test/tb.v` (instantiation).
 - Bidirectional IO (`uio_out`, `uio_oe`) must always be fully assigned even when unused (currently `uio_out` is tied to 0 in `project.v`).
 - ALU op encoding (`alu_op[3:0]`) is defined in both `src/alu.v` (Verilog case statement) and `test/test.py` (`ALU_OP_*` constants) — keep both in sync if op codes change.
+- New RTL modules (and their verification) go through two skills, both invoked explicitly by the user per module, never automatically: `.claude/skills/build-module` (plan → implement RTL → plan → implement verification, exit criteria is verification that *runs*), then `.claude/skills/verify-module` (root-causes failures one at a time, with sign-off, until verification *passes*).
