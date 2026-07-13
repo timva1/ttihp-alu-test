@@ -19,6 +19,7 @@ project:
   source_files:
     - "alu.v"
     - "core/decoder.v"
+    - "mem/spi_phy.v"
     - "project.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
