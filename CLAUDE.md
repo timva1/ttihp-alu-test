@@ -12,6 +12,7 @@ All test commands are run from the `test/` directory.
 
 ```sh
 cd test
+source ~/Documents/TinyTapeout/oss-cad-suite/environment # activate the OSS CAD suite (needed to run all tests)
 make -B              # run RTL simulation (cocotb + Icarus Verilog)
 make clean           # clean sim_build/ and generated waveform/results files
 make -B FST=         # dump real VCD instead of FST (see dumpfile note below)
