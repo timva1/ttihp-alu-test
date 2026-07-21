@@ -23,6 +23,7 @@ project:
     - "periph/uart_rx.v"
     - "periph/uart_tx.v"
     - "periph/uart.v"
+    - "periph/i2c_master.v"
     - "project.v"
 
 # The pinout of your project. Leave unused pins blank. DO NOT delete or add any pins.
